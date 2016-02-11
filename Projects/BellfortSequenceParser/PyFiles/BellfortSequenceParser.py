@@ -1,6 +1,7 @@
-# Bellfort Sequences
+# Bellfort Sequence Parser
 
 ## Modules
+
 import numpy as np
 import pandas as pd
 import tkinter as tk
@@ -13,6 +14,7 @@ import time
 
 ## Helper Functions
 ### Reverse Complement
+
 def reverseComplement(sequence):
     complement = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C', 'N': 'N'}
     rc_sequence=''
@@ -21,17 +23,20 @@ def reverseComplement(sequence):
     return rc_sequence
 
 ### FASTQ File Browse
+
 def buttonBrowseFASTQ():
     global filenameFASTQ
     
     try:
-        filenameFASTQ = filedialog.askopenfilename(filetypes=(('FASTQ files', '*.fastq'), ('All files', '*.*')))
+        filenameFASTQ = filedialog.askopenfilename(filetypes=(('FASTQ files', '*.fastq'), 
+                                                              ('All files', '*.*')))
         text_fileFASTQ.delete('1.0', tk.END)
         text_fileFASTQ.insert('1.0', filenameFASTQ.split('/')[-1])
     except:
         filenameFASTQ = ''   
 
 ### FASTQ File Load
+
 def loadFASTQ():
     global reads
     
@@ -65,7 +70,8 @@ def loadFASTQ():
         text_readNum.insert('1.0', str(len(reads)))  
 
     except:
-        messagebox.showwarning("File Loading Failed", "Sorry, file loading failed! Please check the file format.")
+        messagebox.showwarning("File Loading Failed", 
+                               "Sorry, file loading failed! Please check the file format.")
     f.close()
 
 def start_loadFASTQ_thread(event):
@@ -92,6 +98,7 @@ def check_loadFASTQ_thread():
         messagebox.showinfo("FASTQ File Loaded", "FASTQ file successfully loaded!")
 
 ### Preprocess
+
 def preprocessFASTQ():
     global reads, indicator_preprocess, kmer_dict_reads
     
@@ -130,10 +137,12 @@ def preprocessFASTQ():
             text_time.delete('1.0', tk.END)
             text_time.insert('1.0', str(delta_time))
 
-            messagebox.showinfo("Preprocess FASTQ Completed", "Current FASTQ preprocess successfully completed!")
+            messagebox.showinfo("Preprocess FASTQ Completed", 
+                                "Current FASTQ preprocess successfully completed!")
 
     except NameError:
-        messagebox.showwarning("No FASTQ File Loaded", "Sorry, no loaded FASTQ file found! Please load FASTQ file first.")
+        messagebox.showwarning("No FASTQ File Loaded", 
+                               "Sorry, no loaded FASTQ file found! Please load FASTQ file first.")
 
 def start_preprocess_thread(event):
     global preprocess_thread, indicator_preprocess
@@ -152,6 +161,7 @@ def check_preprocess_thread():
         root.after(20, check_preprocess_thread)
 
 ### Match All
+
 def matchAll():
     global  kmer_dict_reads, indicator_matchAll, df
     
@@ -160,7 +170,8 @@ def matchAll():
         num = len(df)
         
         if num == 0:
-            messagebox.showwarning("No Sequences Loaded", "Sorry, no sequences loaded! Please load sequences first.")
+            messagebox.showwarning("No Sequences Loaded", 
+                                   "Sorry, no sequences loaded! Please load sequences first.")
         else:    
             indicator_matchAll = 0
             gain = 1000000/num
@@ -197,11 +208,12 @@ def matchAll():
             text_time.delete('1.0', tk.END)
             text_time.insert('1.0', str(delta_time))
 
-            messagebox.showinfo("Matching Completed", "Counting of sequences matched successfully completed!")
+            messagebox.showinfo("Matching Completed", 
+                                "Counting of sequences matched successfully completed!")
 
     except NameError:
-        messagebox.showwarning("No FASTQ Preprocessed", 
-                               "Sorry, no FASTQ preprocess implemented! Please preprocess FASTQ first.")    
+        messagebox.showwarning("No FASTQ Preprocessed or No Sequences Loaded", 
+                               "Sorry, no FASTQ preprocess implemented or no sequences file loaded! Please preprocess FASTQ or load sequences first.")    
 
 def start_matchAll_thread(event):
     global matchAll_thread, indicator_matchAll
@@ -220,6 +232,7 @@ def check_matchAll_thread():
         root.after(20, check_matchAll_thread)
 
 ### Match Single
+
 def buttonMatch():
     gotten = text_sequence.get('1.0', tk.END)
     p1 = gotten.rstrip()    
@@ -251,6 +264,7 @@ def buttonMatch():
                                    "Sorry, no FASTQ preprocess implemented! Please preprocess FASTQ first.")
 
 ### File of Target Sequence Load
+
 def buttonBrowseSequences():
     global filenameSequences
     progressbar_loadSequences['value'] = 0
@@ -293,6 +307,7 @@ def loadSequences():
             messagebox.showwarning("File Loading Failed", "Sorry, file loading failed! Please check the file format.")    
 
 ### Table Events
+
 def OnDoubleClick(event):
     item = table.selection()[0]
     value = table.item(item, 'values')
@@ -337,6 +352,7 @@ def display_in_table():
                                "Sorry, there's no loaded sequences to be displayed! Please load sequence file first.") 
 
 ### Other Button Functions
+
 def clear():
     for i in table.get_children():
         table.delete(i)
@@ -365,7 +381,52 @@ def buttonExport():
             messagebox.showwarning("Error: No Counted DataFrame Generated", 
                                "Sorry, no effective counted DataFrame generated! Please check the previous workflow.")
 
+def buttonAbout():
+    about_root=tk.Tk()
+    
+    w = 367 # width for the Tk root
+    h = 310 # height for the Tk root
+
+    # get screen width and height
+    ws = about_root.winfo_screenwidth() # width of the screen
+    hs = about_root.winfo_screenheight() # height of the screen
+
+    # calculate x and y coordinates for the Tk root window
+    x = (ws/2) - (w/2)
+    y = (hs/2) - (h/2)
+
+    # set the dimensions of the screen 
+    # and where it is placed
+    about_root.geometry('%dx%d+%d+%d' % (w, h, x, y))
+    about_root.title('About Bellfort Sequence Parser')  
+    about_root.iconbitmap('dna.ico')
+
+    label_author=tk.Label(about_root,text='Bellfort Sequence Parser Version 1.0', font=('tahoma', 9))
+    label_author.place(x=90,y=30)
+
+    label_author=tk.Label(about_root,text='Copyright (C) 2016', font=('tahoma', 9))
+    label_author.place(x=125,y=60)
+    
+    label_author=tk.Label(about_root,text='Chen Lab', font=('tahoma', 9))
+    label_author.place(x=150,y=90)
+    
+    label_author=tk.Label(about_root,text='Human Genome Sequencing Center', font=('tahoma', 9))
+    label_author.place(x=80,y=120)
+    
+    label_author=tk.Label(about_root,text='Department of Molecular and Human Genetics', font=('tahoma', 9))
+    label_author.place(x=50,y=150)
+    
+    label_author=tk.Label(about_root,text='Baylor College of Medicine', font=('tahoma', 9))
+    label_author.place(x=110,y=180)
+   
+
+    button_okay=ttk.Button(about_root, width=15, text='OK', command=about_root.destroy)
+    button_okay.place(x=130, y=235)
+
+    about_root.mainloop()
+
 ## Main Flow
+
 headers = ['gene_id', 'UID', 'seq', 'Reserved', 'count', 'tag']
 header_widths = [280, 150, 350, 100, 80, 100]
 
@@ -495,23 +556,23 @@ button_clear.place(x=1180, y=y1)
 button_refresh = ttk.Button(root, text="Browse", width=20, command=browse)
 button_refresh.place(x=1180, y=y0)
 
+button_browseFASTQ = ttk.Button(root, text="Browse FASTQ...", width=20, command=buttonBrowseFASTQ)
+button_browseFASTQ.place(x=60, y=y5)
+
 button_loadFASTQ = ttk.Button(root, text="Load FASTQ", width=20, command=lambda:start_loadFASTQ_thread(None))
 button_loadFASTQ.place(x=400, y=y5)
 
 button_preprocessFASTQ = ttk.Button(root, text="Preprocess FASTQ", width=20, command=lambda:start_preprocess_thread(None))
 button_preprocessFASTQ.place(x=720, y=y5)
 
-button_match = ttk.Button(root, text="Preprocess FASTQ", width=20, command=lambda:start_preprocess_thread(None))
-button_match.place(x=720, y=y5)
-
-button_browseFASTQ = ttk.Button(root, text="Browse FASTQ...", width=20, command=buttonBrowseFASTQ)
-button_browseFASTQ.place(x=60, y=y5)
-
 button_match = ttk.Button(root, text="Match", width=20, command=buttonMatch)
 button_match.place(x=680, y=y3)
 
 button_matchAll = ttk.Button(root, text="Match All", width=20, command=lambda:start_matchAll_thread(None))
 button_matchAll.place(x=1180, y=y5)
+
+button_about = ttk.Button(root, text="About", width=20, command=buttonAbout)
+button_about.place(x=980, y=y7)
 
 button_export = ttk.Button(root, text="Export", width=20, command=buttonExport)
 button_export.place(x=720, y=y7)
