@@ -11,8 +11,6 @@ from tkinter import messagebox
 from tkinter import filedialog
 import threading
 import time
-import os
-import shutil
 
 ## Helper Functions
 ### Reverse Complement
@@ -98,84 +96,6 @@ def check_loadFASTQ_thread():
         progressbar_loadFASTQ.stop()
         progressbar_loadFASTQ['value']=100
         messagebox.showinfo("FASTQ File Loaded", "FASTQ file successfully loaded!")
-
-### Divide FASTQ File
-
-def divideFASTQ():    
-    start_time = time.time() 
-
-    gotten = text_readNumDivided.get('1.0', tk.END)
-    readNumDivided = int(gotten.rstrip())
-
-    if os.path.exists(filenameFASTQ+'.folder'):           
-        # Remove the folder previously made:
-        shutil.rmtree(filenameFASTQ+'.folder')
-
-    # Make a new one:
-    os.makedirs(filenameFASTQ+'.folder')    
-
-    line_num = 0
-    file_no = 1
-
-    f_input = open(filenameFASTQ)        
-    f_output = open(filenameFASTQ+'.folder/' + 'Reads_Slice_No_' + str(file_no) + '.fastq', 'w') 
-
-    while 1:
-        # Input ///////////////////////////////////
-        name = f_input.readline()
-        sequence = f_input.readline()
-        f_input.readline()
-        quality = f_input.readline()
-
-        if len(name) == 0:
-            break            
-
-        # Output ////////////////////////////////////
-
-        f_output.write(name)
-        f_output.write(sequence)
-        f_output.write('+\n')
-        f_output.write(quality)      
-
-        line_num += 1
-
-        if line_num == readNumDivided:                
-            f_output.close() 
-            file_no += 1
-            f_output = open(filenameFASTQ+'.folder/' + 'Reads_Slice_No_' + str(file_no) + '.fastq', 'w')
-            line_num = 0                
-
-    end_time = time.time()
-    delta_time = end_time - start_time
-
-    text_time.delete('1.0', tk.END)
-    text_time.insert('1.0', str(delta_time))  
-
-    f_input.close()
-    f_output.close()
-
-def start_divideFASTQ_thread(event):
-    global divideFASTQ_thread
-    
-    if filenameFASTQ != '':
-        divideFASTQ_thread = threading.Thread(target=divideFASTQ)
-        divideFASTQ_thread.daemon = True
-
-        progressbar_loadFASTQ.start(10)
-        divideFASTQ_thread.start()
-        root.after(20, check_divideFASTQ_thread)
-    else:
-        messagebox.showwarning("No File", 
-                               "Sorry, no file loaded! Please choose FASTQ file first.")
-
-def check_divideFASTQ_thread():
-    if divideFASTQ_thread.is_alive():
-        progressbar_loadFASTQ.start(10)
-        root.after(20, check_divideFASTQ_thread)
-    else:
-        progressbar_loadFASTQ.stop()
-        progressbar_loadFASTQ['value']=100
-        messagebox.showinfo("FASTQ File Divided", "FASTQ file has been successfully divided!")
 
 ### Preprocess
 
@@ -274,8 +194,8 @@ def matchAll():
                 except KeyError:
                     n2 = 0
                     
-                arr[i, 4] += n1 + n2
-                arr[i, 5] += 1
+                arr[i, 4] = n1 + n2
+                arr[i, 5] = 'Checked'
                 
                 indicator_matchAll += gain
 
@@ -366,7 +286,7 @@ def loadSequences():
             
             df = pd.read_csv(filenameSequences)
             df['count'] = 0
-            df['tag'] = 0
+            df['tag'] = ''
             #df = df.set_index('UID', drop=False)  
             
             recordNum = len(df)
@@ -383,43 +303,6 @@ def loadSequences():
             text_recordNum.insert('1.0', str(recordNum))
             
             messagebox.showinfo("File of Sequences Loaded", "File of sequences successfully loaded!")        
-        except:
-            messagebox.showwarning("File Loading Failed", "Sorry, file loading failed! Please check the file format.")    
-
-def buttonLoadHalfMatchedSequences():
-    global df, recordNum, filenameSequences
-    
-    progressbar_loadSequences['value'] = 0
-    try:
-        filenameSequences = filedialog.askopenfilename(filetypes=(('Comma-Separated (CSV) text file', '*.csv'), ('All files', '*.*')))
-        text_fileSequences.delete('1.0', tk.END)
-        text_fileSequences.insert('1.0', filenameSequences.split('/')[-1])
-    except:
-        filenameSequences = ''    
-        
-    if filenameSequences == '':
-        messagebox.showwarning("No File", "Sorry, no file chosen! Please choose file of sequences first.")
-    else:        
-        try:
-            start_time = time.time()
-            
-            df = pd.read_csv(filenameSequences)   
-            df = df.set_index('Unnamed: 0', drop=True)  
-            
-            recordNum = len(df)
-            
-            progressbar_loadSequences['value'] = 100
-            
-            end_time = time.time()
-            delta_time = end_time - start_time
-                       
-            text_time.delete('1.0', tk.END)
-            text_time.insert('1.0', str(delta_time))
-            
-            text_recordNum.delete('1.0', tk.END)
-            text_recordNum.insert('1.0', str(recordNum))
-            
-            messagebox.showinfo("File of Half Matched Sequences Loaded", "File of half matched sequences successfully loaded!")        
         except:
             messagebox.showwarning("File Loading Failed", "Sorry, file loading failed! Please check the file format.")    
 
@@ -492,7 +375,7 @@ def buttonExport():
             len(df)
             len(reads)
             directory = filedialog.askdirectory()
-            df.to_csv(directory + '/Counts of ' + filenameSequences.split('/')[-1] + ' matched with ' + filenameFASTQ.split('/')[-1] + '.csv')
+            df.to_csv(directory + '/' +'SequenceCounts.csv')
             messagebox.showinfo("File Exported", "File of counted sequences successfully exported!")        
         except NameError:
             messagebox.showwarning("Error: No Counted DataFrame Generated", 
@@ -501,7 +384,7 @@ def buttonExport():
 def buttonAbout():
     about_root=tk.Tk()
     
-    w = 380 # width for the Tk root
+    w = 367 # width for the Tk root
     h = 310 # height for the Tk root
 
     # get screen width and height
@@ -600,7 +483,7 @@ y7 = 695
 text_recordNum=tk.Text(root, width=18, height=1, font=('tahoma', 9), bd=2, wrap='none')
 text_recordNum.place(x=830, y=y0)
 label_recordNum=tk.Label(root, text='records', font=('tahoma', 9))
-label_recordNum.place(x=990,y=y0)
+label_recordNum.place(x=1000,y=y0)
 
 text_fileSequences=tk.Text(root, width=50, height=1, font=('tahoma', 9), bd=2, wrap='none')
 text_fileSequences.place(x=60, y=y0)
@@ -631,43 +514,34 @@ label_sequence.place(x=600,y=y2)
 text_rc_sequence=tk.Text(root, width=38, height=1, font=('tahoma', 9), bd=2)
 text_rc_sequence.place(x=1000, y=y2)
 
-text_sequence_len=tk.Text(root, width=5, height=1, font=('tahoma', 9), bd=2)
-text_sequence_len.place(x=1010, y=y5)
+text_sequence_len=tk.Text(root, width=10, height=1, font=('tahoma', 9), bd=2)
+text_sequence_len.place(x=970, y=y5)
 label_sequence_len=tk.Label(root, text='nts', font=('tahoma', 9))
-label_sequence_len.place(x=1065,y=y5)
+label_sequence_len.place(x=1070,y=y5)
 text_sequence_len.delete('1.0', tk.END)
 text_sequence_len.insert('1.0', str(20))
-
-text_readNumDivided=tk.Text(root, width=13, height=1, font=('tahoma', 9), bd=2, wrap='none')
-text_readNumDivided.place(x=295, y=y3+10)
-label_readNumDivided1=tk.Label(root, text='by', font=('tahoma', 9))
-label_readNumDivided1.place(x=255,y=y3+10)
-label_readNumDivided2=tk.Label(root, text='reads', font=('tahoma', 9))
-label_readNumDivided2.place(x=420,y=y3+10)
-text_readNumDivided.delete('1.0', tk.END)
-text_readNumDivided.insert('1.0', str(2000000))
 
 text_readNum=tk.Text(root, width=22, height=1, font=('tahoma', 9), bd=2, wrap='none')
 text_readNum.place(x=400, y=y6)
 label_readNum=tk.Label(root, text='reads', font=('tahoma', 9))
-label_readNum.place(x=590,y=y6)
+label_readNum.place(x=600,y=y6)
 
 text_time=tk.Text(root, width=15, height=1, font=('tahoma', 9), bd=2)
 text_time.place(x=115, y=y7)
 label_time=tk.Label(root, text='Time:', font=('tahoma', 9))
 label_time.place(x=60,y=y7)
 label_seconds=tk.Label(root, text='second(s)', font=('tahoma', 9))
-label_seconds.place(x=250,y=y7)
+label_seconds.place(x=260,y=y7)
 
 # ProgressBar /////////////////////////////////////////////////////////////////////////////
 progressbar_loadSequences = ttk.Progressbar(root, length=200, maximum=100, mode='determinate')
 progressbar_loadSequences.place(x=500,y=y0)
 
-progressbar_loadFASTQ = ttk.Progressbar(root, length=300, mode='indeterminate')
+progressbar_loadFASTQ = ttk.Progressbar(root, length=250, mode='indeterminate')
 progressbar_loadFASTQ.place(x=400,y=y4)
 
-progressbar = ttk.Progressbar(root, length=550, maximum=1000000, mode='determinate')
-progressbar.place(x=760,y=y4)
+progressbar = ttk.Progressbar(root, length=410, maximum=1000000, mode='determinate')
+progressbar.place(x=720,y=y4)
 
 # Button /////////////////////////////////////////////////////////////////////////////////
 button_browseSequences = ttk.Button(root, text="Browse sgRNA...", width=20, command=buttonBrowseSequences)
@@ -675,9 +549,6 @@ button_browseSequences.place(x=60, y=y1)
 
 button_loadSequences = ttk.Button(root, text="Load sgRNA", width=20, command=loadSequences)
 button_loadSequences.place(x=500, y=y1)
-
-button_loadHalfMatchedSequences = ttk.Button(root, text="Load Half Matched sgRNA", width=30, command=buttonLoadHalfMatchedSequences)
-button_loadHalfMatchedSequences.place(x=800, y=y1)
 
 button_clear = ttk.Button(root, text="Clear", width=20, command=clear)
 button_clear.place(x=1180, y=y1)
@@ -688,14 +559,11 @@ button_refresh.place(x=1180, y=y0)
 button_browseFASTQ = ttk.Button(root, text="Browse FASTQ...", width=20, command=buttonBrowseFASTQ)
 button_browseFASTQ.place(x=60, y=y5)
 
-button_divideFASTQ = ttk.Button(root, text="Divide FASTQ", width=20, command=lambda:start_divideFASTQ_thread(None))
-button_divideFASTQ.place(x=60, y=y3+10)
-
 button_loadFASTQ = ttk.Button(root, text="Load FASTQ", width=20, command=lambda:start_loadFASTQ_thread(None))
 button_loadFASTQ.place(x=400, y=y5)
 
 button_preprocessFASTQ = ttk.Button(root, text="Preprocess FASTQ", width=20, command=lambda:start_preprocess_thread(None))
-button_preprocessFASTQ.place(x=760, y=y5)
+button_preprocessFASTQ.place(x=720, y=y5)
 
 button_match = ttk.Button(root, text="Match", width=20, command=buttonMatch)
 button_match.place(x=680, y=y3)
@@ -714,7 +582,6 @@ button_exit.place(x=1180, y=y7)
 
 root.bind('<Return>', start_preprocess_thread)
 root.bind('<Return>', start_loadFASTQ_thread)
-root.bind('<Return>', start_divideFASTQ_thread)
 root.bind('<Return>', start_matchAll_thread)
 
 root.mainloop()
