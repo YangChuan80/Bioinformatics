@@ -185,7 +185,7 @@ def preprocessFASTQ():
     try:
         num = len(reads)   
         indicator_preprocess = 0
-        gain = 500000/num
+        gain = 50/num
 
         gotten = text_sequence_len.get('1.0', tk.END)
         k = int(gotten.rstrip())
@@ -215,10 +215,7 @@ def preprocessFASTQ():
             delta_time = end_time - start_time
 
             text_time.delete('1.0', tk.END)
-            text_time.insert('1.0', str(delta_time))
-
-            messagebox.showinfo("Preprocess FASTQ Completed", 
-                                "Current FASTQ preprocess successfully completed!")
+            text_time.insert('1.0', str(delta_time))           
 
     except NameError:
         messagebox.showwarning("No FASTQ File Loaded", 
@@ -230,6 +227,8 @@ def start_preprocess_thread(event):
     preprocess_thread.daemon = True
     
     progressbar['value'] = indicator_preprocess
+    text_percentage.delete('1.0', tk.END)
+    text_percentage.insert('1.0', str(int(indicator_preprocess))+'%')
     
     preprocess_thread.start()
     root.after(20, check_preprocess_thread)
@@ -237,8 +236,15 @@ def start_preprocess_thread(event):
 def check_preprocess_thread():
     if preprocess_thread.is_alive():
         progressbar['value'] = indicator_preprocess
+        text_percentage.delete('1.0', tk.END)
+        text_percentage.insert('1.0', str(int(indicator_preprocess))+'%')
         
         root.after(20, check_preprocess_thread)
+    else:
+        text_percentage.delete('1.0', tk.END)
+        text_percentage.insert('1.0', '100%')
+        messagebox.showinfo("Preprocess FASTQ Completed", 
+                                "Current FASTQ preprocess successfully completed!")
 
 ### Match All
 
@@ -598,11 +604,11 @@ y6 = 655
 y7 = 695
 # Text /////////////////////////////////////////////////////////////////////////////////////
 text_recordNum=tk.Text(root, width=18, height=1, font=('tahoma', 9), bd=2, wrap='none')
-text_recordNum.place(x=830, y=y0)
+text_recordNum.place(x=840, y=y0)
 label_recordNum=tk.Label(root, text='records', font=('tahoma', 9))
-label_recordNum.place(x=990,y=y0)
+label_recordNum.place(x=1000,y=y0)
 
-text_fileSequences=tk.Text(root, width=50, height=1, font=('tahoma', 9), bd=2, wrap='none')
+text_fileSequences=tk.Text(root, width=55, height=1, font=('tahoma', 9), bd=2, wrap='none')
 text_fileSequences.place(x=60, y=y0)
 
 text_fileFASTQ=tk.Text(root, width=36, height=1, font=('tahoma', 9), bd=2, wrap='none')
@@ -659,22 +665,26 @@ label_time.place(x=60,y=y7)
 label_seconds=tk.Label(root, text='second(s)', font=('tahoma', 9))
 label_seconds.place(x=250,y=y7)
 
+text_percentage=tk.Text(root, width=8, height=1, font=('tahoma', 9), bg='gray95', bd=0)
+text_percentage.place(x=1260, y=y4)
+
 # ProgressBar /////////////////////////////////////////////////////////////////////////////
 progressbar_loadSequences = ttk.Progressbar(root, length=200, maximum=100, mode='determinate')
-progressbar_loadSequences.place(x=500,y=y0)
+progressbar_loadSequences.place(x=530,y=y0)
 
 progressbar_loadFASTQ = ttk.Progressbar(root, length=300, mode='indeterminate')
 progressbar_loadFASTQ.place(x=400,y=y4)
 
-progressbar = ttk.Progressbar(root, length=550, maximum=1000000, mode='determinate')
+progressbar = ttk.Progressbar(root, length=460, maximum=100, mode='determinate')
 progressbar.place(x=760,y=y4)
+
 
 # Button /////////////////////////////////////////////////////////////////////////////////
 button_loadSequences = ttk.Button(root, text="Load sgRNA", width=20, command=loadSequences)
 button_loadSequences.place(x=60, y=y1)
 
 button_loadHalfMatchedSequences = ttk.Button(root, text="Load Half Matched sgRNA", width=30, command=buttonLoadHalfMatchedSequences)
-button_loadHalfMatchedSequences.place(x=800, y=y1)
+button_loadHalfMatchedSequences.place(x=265, y=y1)
 
 button_clear = ttk.Button(root, text="Clear", width=20, command=clear)
 button_clear.place(x=1180, y=y1)
