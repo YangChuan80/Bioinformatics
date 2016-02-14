@@ -196,6 +196,9 @@ def preprocessFASTQ():
         elif k < 3:
             messagebox.showwarning("Sequence Too Short", 
                                    "Sorry, the target sequence length is too short which will make the program running slowly. Please check.")
+        elif filenameSequences == '':
+            messagebox.showwarning("No Sequences Loaded", 
+                                   "Sorry, no sequences loaded! Please load sequences first.")
         else:
             kmer_dict_reads = {}
 
@@ -210,12 +213,20 @@ def preprocessFASTQ():
                 for i in range(len(read[1])-k+1):
                     kmer_dict_reads[read[1][i:i+k]].add(read)
                 indicator_preprocess += gain
+                
+            indicator_progress = 100
+            
+            # Add MatchAll Here ///////////////////////////////////////////////////////
+            matchAll()
 
             end_time = time.time()
             delta_time = end_time - start_time
 
             text_time.delete('1.0', tk.END)
-            text_time.insert('1.0', str(delta_time))           
+            text_time.insert('1.0', str(delta_time)) 
+            
+            messagebox.showinfo("Preprocess FASTQ & Count Matched Sequences Completed", 
+                                "Current FASTQ preprocess & matched sequence counts successfully completed!")
 
     except NameError:
         messagebox.showwarning("No FASTQ File Loaded", 
@@ -240,11 +251,6 @@ def check_preprocess_thread():
         text_percentage.insert('1.0', str(int(indicator_preprocess))+'%')
         
         root.after(20, check_preprocess_thread)
-    else:
-        text_percentage.delete('1.0', tk.END)
-        text_percentage.insert('1.0', '100%')
-        messagebox.showinfo("Preprocess FASTQ Completed", 
-                                "Current FASTQ preprocess successfully completed!")
 
 ### Match All
 
@@ -292,10 +298,7 @@ def matchAll():
             delta_time = end_time - start_time
 
             text_time.delete('1.0', tk.END)
-            text_time.insert('1.0', str(delta_time))
-
-            messagebox.showinfo("Matching Completed", 
-                                "Counting of sequences matched successfully completed!")
+            text_time.insert('1.0', str(delta_time))           
 
     except NameError:
         messagebox.showwarning("No FASTQ Preprocessed or No Sequences Loaded", 
@@ -316,6 +319,9 @@ def check_matchAll_thread():
         progressbar['value'] = indicator_matchAll
         
         root.after(20, check_matchAll_thread)
+    else:
+        messagebox.showinfo("Matching Completed", 
+                                "Counting of sequences matched successfully completed!")
 
 ### Match Single
 
@@ -524,7 +530,7 @@ def buttonAbout():
     about_root.title('About Bellfort Sequence Parser')  
     about_root.iconbitmap('dna.ico')
 
-    label_author=tk.Label(about_root,text='Bellfort Sequence Parser Version 1.0', font=('tahoma', 9))
+    label_author=tk.Label(about_root,text='Bellfort Sequence Parser Version 2.0', font=('tahoma', 9))
     label_author.place(x=90,y=30)
 
     label_author=tk.Label(about_root,text='Copyright (C) 2016', font=('tahoma', 9))
@@ -638,9 +644,9 @@ text_rc_sequence=tk.Text(root, width=38, height=1, font=('tahoma', 9), bd=2)
 text_rc_sequence.place(x=1000, y=y2)
 
 text_sequence_len=tk.Text(root, width=5, height=1, font=('tahoma', 9), bd=2)
-text_sequence_len.place(x=1010, y=y5)
+text_sequence_len.place(x=1180, y=y5)
 label_sequence_len=tk.Label(root, text='nts', font=('tahoma', 9))
-label_sequence_len.place(x=1065,y=y5)
+label_sequence_len.place(x=1235,y=y5)
 text_sequence_len.delete('1.0', tk.END)
 text_sequence_len.insert('1.0', str(20))
 
@@ -651,7 +657,7 @@ label_readNumDivided1.place(x=255,y=y3+10)
 label_readNumDivided2=tk.Label(root, text='reads', font=('tahoma', 9))
 label_readNumDivided2.place(x=420,y=y3+10)
 text_readNumDivided.delete('1.0', tk.END)
-text_readNumDivided.insert('1.0', str(2000000))
+text_readNumDivided.insert('1.0', str(500000))
 
 text_readNum=tk.Text(root, width=22, height=1, font=('tahoma', 9), bd=2, wrap='none')
 text_readNum.place(x=400, y=y6)
@@ -701,14 +707,14 @@ button_divideFASTQ.place(x=60, y=y3+10)
 button_loadFASTQ = ttk.Button(root, text="Load FASTQ", width=20, command=lambda:start_loadFASTQ_thread(None))
 button_loadFASTQ.place(x=400, y=y5)
 
-button_preprocessFASTQ = ttk.Button(root, text="Preprocess FASTQ", width=20, command=lambda:start_preprocess_thread(None))
+button_preprocessFASTQ = ttk.Button(root, text="Preprocess FASTQ & Count Matched Sequences", width=55, command=lambda:start_preprocess_thread(None))
 button_preprocessFASTQ.place(x=760, y=y5)
 
 button_match = ttk.Button(root, text="Match", width=20, command=buttonMatch)
 button_match.place(x=680, y=y3)
 
 button_matchAll = ttk.Button(root, text="Match All", width=20, command=lambda:start_matchAll_thread(None))
-button_matchAll.place(x=1180, y=y5)
+button_matchAll.place(x=1180, y=y3)
 
 button_about = ttk.Button(root, text="About", width=20, command=buttonAbout)
 button_about.place(x=980, y=y7)
