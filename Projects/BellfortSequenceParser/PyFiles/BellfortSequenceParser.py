@@ -27,7 +27,7 @@ def reverseComplement(sequence):
 ### FASTQ File Browse
 
 def buttonBrowseFASTQ():
-    global filenameFASTQ
+    global filenameFASTQ, indicator_preprocess
     
     try:
         filenameFASTQ = filedialog.askopenfilename(filetypes=(('FASTQ files', '*.fastq'), 
@@ -42,6 +42,8 @@ def buttonBrowseFASTQ():
         # Reset the percentage
         text_percentage.delete('1.0', tk.END)
         text_percentage.insert('1.0', str('0%'))
+        
+        indicator_preprocess = 0
     except:
         filenameFASTQ = ''   
 
