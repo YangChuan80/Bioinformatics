@@ -34,6 +34,14 @@ def buttonBrowseFASTQ():
                                                               ('All files', '*.*')))
         text_fileFASTQ.delete('1.0', tk.END)
         text_fileFASTQ.insert('1.0', filenameFASTQ.split('/')[-1])
+        
+        # Reset the progress bar///////////////
+        progressbar['value'] = 0
+        progressbar_loadFASTQ['value'] = 0
+        
+        # Reset the percentage
+        text_percentage.delete('1.0', tk.END)
+        text_percentage.insert('1.0', str('0%'))
     except:
         filenameFASTQ = ''   
 
