@@ -12,7 +12,7 @@
 
 # ## Libraries
 
-# In[15]:
+# In[1]:
 
 import SimpleITK as sitk
 import cv2
@@ -230,10 +230,10 @@ def about():
     about_root.title('About Willowbend DICOM')  
     about_root.iconbitmap('Heart.ico')
 
-    label_author=tk.Label(about_root,text='Willowbend DICOM Version 1.0', font=('tahoma', 9))
+    label_author=tk.Label(about_root,text='Willowbend DICOM Version 2.0', font=('tahoma', 9))
     label_author.place(x=90,y=30)
 
-    label_author=tk.Label(about_root,text='Copyright (C) 2016', font=('tahoma', 9))
+    label_author=tk.Label(about_root,text='Copyright (C) 2019', font=('tahoma', 9))
     label_author.place(x=125,y=60)
     
     label_author=tk.Label(about_root,text='Author: Chuan Yang', font=('tahoma', 9))
