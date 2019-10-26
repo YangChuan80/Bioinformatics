@@ -1,13 +1,18 @@
-# Willowbend DICOM
+
+# coding: utf-8
+
+# # Willowbend DICOM Enhanced
 # <img src="Title.png" align="left" width="45%" height="45%">
 
 # A dialog-based DICOM to video converter.
-
+# 
 # **DICOM (Digital Imaging and Communications in Medicine)** is a standard for handling, storing, printing, and transmitting information in medical imaging. DICOM files can be exchanged between two entities that are capable of receiving image and patient data in DICOM format by following network communications protocol. DICOM has been widely adopted by hospitals and is making inroads in smaller applications like dentists' and doctors' offices.
-
+# 
 # This project is to implement the process of conversion from DICOM format to video format (avi) in order to meet the needs and requirements for universal computer systems (PC, Mac, Linux, etc.). So the ordinary users of such systems can use the converted file to present, communicate and store the universal files. Case reports in medical conferences, educations of clinical medicine will become more convenient to use universal video formats in the slide presentations.
 
-## Libraries
+# ## Libraries
+
+# In[15]:
 
 import SimpleITK as sitk
 import cv2
@@ -18,15 +23,21 @@ from tkinter import ttk
 from tkinter import messagebox
 from tkinter import filedialog
 
-## Helper Functions
 
-### Basic Helper Functions
+# ## Helper Functions
+
+# ### Basic Helper Functions
+
+# In[2]:
 
 def loadFile(filename):
     ds = sitk.ReadImage(filename)
     img_array = sitk.GetArrayFromImage(ds)
     frame_num, width, height = img_array.shape
     return img_array, frame_num, width, height
+
+
+# In[3]:
 
 def loadFileInformation(filename):
     information = {}
@@ -45,6 +56,9 @@ def loadFileInformation(filename):
     
     return information
 
+
+# In[4]:
+
 def autoEqualize(img_array):
     img_array_list = []
     for img in img_array:
@@ -52,16 +66,22 @@ def autoEqualize(img_array):
     img_array_equalized = np.array(img_array_list)
     return img_array_equalized
 
-def limitedEqualize(img_array, limit=4.0):
+
+# In[5]:
+
+def limitedEqualize(img_array, limit):
     img_array_list = []
     for img in img_array:
         clahe = cv2.createCLAHE(clipLimit=limit, tileGridSize=(8,8))  #CLAHE (Contrast Limited Adaptive Histogram Equalization)
         img_array_list.append(clahe.apply(img))
         
-    img_array_limited_equalized = np.array(img_array_list)
+    img_array_limited_equalized = np.array(img_array_list, dtype=np.uint8)
     return img_array_limited_equalized   
 
-def writeVideo(img_array, directory):
+
+# In[6]:
+
+def writeVideo(img_array, directory, filename):
     frame_num, width, height = img_array.shape
     filename_output = directory + '/' + filename.split('.')[0].split('/')[-1] + '.avi'        
     
@@ -77,17 +97,33 @@ def writeVideo(img_array, directory):
         
     video.release()
 
-## GUI Helper Function
+
+# ## GUI Helper Function
+
+# In[7]:
 
 def browseFileButton():
-    global filename
+    global filenames
+    file_list = []
     
     try:
-        filename = filedialog.askopenfilename(filetypes=(('DICOM files', '*.dcm'), ('All files', '*.*')))
-        information = loadFileInformation(filename)
+        filenames = filedialog.askopenfilenames(filetypes=(('DICOM files', '*.dcm'), ('All files', '*.*')))
+        information = loadFileInformation(filenames[0])
+        
+        
+        for filename in filenames:
+            item = filename.split('/')[-1]
+            file_list.append(item)
+
+            file_list_str = str(file_list) + ' -- ' + str(len(filenames)) + ' files'
+        
+        # The files picked up are TUPLE!!!!!! ///////////////////////////
 
         text_filename.delete('1.0', tk.END)
-        text_filename.insert('1.0', filename)
+        text_filename.insert('1.0', filenames[0])
+        
+        text_filenames.delete('1.0', tk.END)
+        text_filenames.insert('1.0', file_list_str)
 
         text_PatientID.delete('1.0', tk.END)
         text_PatientID.insert('1.0', information['PatientID'])
@@ -120,40 +156,59 @@ def browseFileButton():
         text_NumberOfFrames.insert('1.0', information['NumberOfFrames'])
         
     except:
-        filename = ''
+        filenames = {}
+
+
+# In[8]:
 
 def loadFileButton():
     global img_array, frame_num, width, height, information, isLoad
+    img_array = {}
+    frame_num = {}
+    width = {}
+    height = {}
+    information = {}
+    isLoad = {}
     
-    if filename == '':
+    if filenames == ():
         messagebox.showwarning("No File", "Sorry, no file loaded! Please choose DICOM file first.")
     else:
         try:
-            img_array, frame_num, width, height = loadFile(filename)
-            information = loadFileInformation(filename) 
-            isLoad = 1
+            for filename in filenames:                
+                img_array[filename], frame_num[filename], width[filename], height[filename] = loadFile(filename)
+                information[filename] = loadFileInformation(filename) 
+                isLoad[filename] = 1
             messagebox.showinfo("DICOM File Loaded", "DICOM file successfully loaded!")
         except:
             messagebox.showwarning("File Loading Failed", "Sorry, file loading failed! Please check the file format.")
 
+
+# In[9]:
+
 def convertVideoButton():
     global isLoad, clipLimit
+    #isLoad = {}
     
     clipLimit = float(text_clipLimit.get('1.0', tk.END))
     
     directory = filedialog.askdirectory()
     
-    if filename == '':
-        messagebox.showwarning("No File to be Converted", "Sorry, no file to be converted! Please choose a DICOM file first.")
-    elif isLoad == 0:
-        messagebox.showwarning("No File Loaded", "Sorry, no file loaded! Please load the chosen DICOM file.")
-    elif directory == '':
-        messagebox.showwarning("No Directory", "Sorry, no directory shown! Please specify the output directory.")
-    else:
-        img_array_limited_equalized = limitedEqualize(img_array, clipLimit)
-        writeVideo(img_array_limited_equalized, directory)
-        messagebox.showinfo("Video File Converted", "Video file successfully generated!")
-        isLoad = 0
+    for filename in filenames:        
+        if filename == '':
+            messagebox.showwarning("No File to be Converted", "Sorry, no file to be converted! Please choose a DICOM file first.")
+        elif isLoad[filename] == 0:
+            messagebox.showwarning("No File Loaded", "Sorry, no file loaded! Please load the chosen DICOM file.")
+        elif directory == '':
+            messagebox.showwarning("No Directory", "Sorry, no directory shown! Please specify the output directory.")
+        else:
+            img_array_limited_equalized = limitedEqualize(img_array[filename], clipLimit)
+            writeVideo(img_array_limited_equalized, directory, filename)
+            #messagebox.showinfo("Video File Converted", "Video file successfully generated!")
+            isLoad[filename] = 0
+    messagebox.showinfo("Video File Converted", "Video(s) successfully converted!")
+
+
+# In[10]:
 
 def about():
     about_root=tk.Tk()
@@ -193,13 +248,16 @@ def about():
 
     about_root.mainloop()
 
-## Main Stream
+
+# ## Main Stream
+
+# In[11]:
 
 # Main Frame////////////////////////////////////////////////////////////////////////////////////////
 root = tk.Tk()
 
 w = 930 # width for the Tk root
-h = 660 # height for the Tk root
+h = 650 # height for the Tk root
 
 # get screen width and height
 ws = root.winfo_screenwidth() # width of the screen
@@ -216,9 +274,14 @@ root.geometry('%dx%d+%d+%d' % (w, h, x, y))
 root.title('Willowbend DICOM')
 root.iconbitmap('Heart.ico')
 
-isLoad = 0
-clipLimit = 3.0
+isLoad = {}
+clipLimit = 2.0
 filename = ''
+
+# //////// Frame /////////////////////////////
+
+label_Patients=tk.Label(root,width=125, height=37 , relief='raised', borderwidth=2)
+label_Patients.place(x=20,y=15)
 
 #///////////Image Title///////////////////////////////
 photo=tk.PhotoImage(file='Title.png')
@@ -227,74 +290,79 @@ label_photo.place(x=260,y=35)
 
 #/////////////Text///////////////////////////////////////////////////////////////////
 
-text_PatientID=tk.Text(root, width=20,height=1, font=('tahoma', 9), bd=2)
+text_PatientID=tk.Text(root, width=20,height=1, font=('tahoma', 9), bd=1)
 text_PatientID.place(x=60, y=90)
 label_PatientID=tk.Label(root, text='Patient ID', font=('tahoma', 9))
 label_PatientID.place(x=60,y=60)
 
 #//////////////////
 y_position = 180
-text_PatientName=tk.Text(root, width=30,height=1, font=('tahoma', 9), bd=2)
+text_PatientName=tk.Text(root, width=30,height=1, font=('tahoma', 9), bd=1)
 text_PatientName.place(x=60, y=y_position)
 label_PatientName=tk.Label(root, text='Patient\'s Name:', font=('tahoma', 9))
 label_PatientName.place(x=60,y=y_position-30)
 
-text_PatientSex=tk.Text(root, width=15,height=1, font=('tahoma', 9), bd=2)
+text_PatientSex=tk.Text(root, width=15,height=1, font=('tahoma', 9), bd=1)
 text_PatientSex.place(x=360, y=y_position)
 label_PatientSex=tk.Label(root, text='Gender:', font=('tahoma', 9))
 label_PatientSex.place(x=360,y=y_position-30)
 
-text_PatientBirthDate=tk.Text(root, width=25,height=1, font=('tahoma', 9), bd=2)
+text_PatientBirthDate=tk.Text(root, width=25,height=1, font=('tahoma', 9), bd=1)
 text_PatientBirthDate.place(x=560, y=y_position)
 label_PatientBirthDate=tk.Label(root, text='Birth Date:', font=('tahoma', 9))
 label_PatientBirthDate.place(x=560,y=y_position-30)
 
 #//////////////////////////////////////////////////////////////////////////////////
-y_position = 260
-text_StudyID=tk.Text(root, width=25,height=1, font=('tahoma', 9), bd=2)
+y_position = 250
+text_StudyID=tk.Text(root, width=25,height=1, font=('tahoma', 9), bd=1)
 text_StudyID.place(x=60, y=y_position)
 label_StudyID=tk.Label(root, text='Study ID:', font=('tahoma', 9))
 label_StudyID.place(x=60,y=y_position-30)
 
-text_StudyDate=tk.Text(root, width=25,height=1, font=('tahoma', 9), bd=2)
+text_StudyDate=tk.Text(root, width=25,height=1, font=('tahoma', 9), bd=1)
 text_StudyDate.place(x=340, y=y_position)
 label_StudyDate=tk.Label(root, text='Study Date:', font=('tahoma', 9))
 label_StudyDate.place(x=340,y=y_position-30)
 
-text_StudyTime=tk.Text(root, width=25,height=1, font=('tahoma', 9), bd=2)
+text_StudyTime=tk.Text(root, width=25,height=1, font=('tahoma', 9), bd=1)
 text_StudyTime.place(x=600, y=y_position)
 label_StudyTime=tk.Label(root, text='Study Time:', font=('tahoma', 9))
 label_StudyTime.place(x=600,y=y_position-30)
 
 #////////////////////////////////////
-y_position = 340
-text_InstitutionName=tk.Text(root, width=50,height=1, font=('tahoma', 9), bd=2)
+y_position = 320
+text_InstitutionName=tk.Text(root, width=50,height=1, font=('tahoma', 9), bd=1)
 text_InstitutionName.place(x=60, y=y_position)
 label_InstitutionName=tk.Label(root, text='Institution Name:', font=('tahoma', 9))
 label_InstitutionName.place(x=60,y=y_position-30)
 
-text_Manufacturer=tk.Text(root, width=38,height=1, font=('tahoma', 9), bd=2)
+text_Manufacturer=tk.Text(root, width=38,height=1, font=('tahoma', 9), bd=1)
 text_Manufacturer.place(x=560, y=y_position)
 label_Manufacturer=tk.Label(root, text='Manufacturer:', font=('tahoma', 9))
 label_Manufacturer.place(x=560,y=y_position-30)
 
 # File Name
-text_filename=tk.Text(root, width=100,height=1, font=('tahoma', 9), bd=2)
-text_filename.place(x=60, y=450)
-label_filename=tk.Label(root, text='DICOM File:', font=('tahoma', 9))
-label_filename.place(x=60,y=420)
+y_position = 390
+text_filename=tk.Text(root, width=78,height=1, font=('tahoma', 9), bd=1)
+text_filename.place(x=60, y=y_position)
+label_filename=tk.Label(root, text='DICOM Directory:', font=('tahoma', 9))
+label_filename.place(x=60,y=y_position-30)
 
-text_NumberOfFrames=tk.Text(root, width=10,height=1, font=('tahoma', 9), bd=2)
-text_NumberOfFrames.place(x=660, y=400)
+text_NumberOfFrames=tk.Text(root, width=8,height=1, font=('tahoma', 9), bd=1)
+text_NumberOfFrames.place(x=670, y=y_position)
 label_NumberOfFrames=tk.Label(root, text='Frames', font=('tahoma', 9))
-label_NumberOfFrames.place(x=760,y=400)
+label_NumberOfFrames.place(x=760,y=y_position)
 
-text_clipLimit=tk.Text(root, width=8,height=1, font=('tahoma', 9), bd=2)
+text_clipLimit=tk.Text(root, width=8,height=1, font=('tahoma', 9), bd=1)
 text_clipLimit.place(x=580, y=510)
 label_clipLimit=tk.Label(root, text='Clip Limit:', font=('tahoma', 9))
 label_clipLimit.place(x=500,y=510)
 text_clipLimit.delete('1.0', tk.END)
 text_clipLimit.insert('1.0', clipLimit)
+
+y_position = 429
+text_filenames=tk.Text(root, width=110,height=3, font=('tahoma', 9), bd=1)
+text_filenames.place(x=60, y=y_position)
 
 #/////////////Button///////////////////////////////////////////////////////////////
 button_browse=ttk.Button(root, text='Browse...', width=20, command=browseFileButton)
@@ -307,21 +375,27 @@ button_convert=ttk.Button(root, text='Convert', width=20, command=convertVideoBu
 button_convert.place(x=700, y=510)
 
 button_about=ttk.Button(root, text='About...', width=20, command=about)
-button_about.place(x=260, y=580)
+button_about.place(x=260, y=600)
 
 button_close=ttk.Button(root, width=20, text='Exit', command=root.destroy)
-button_close.place(x=700, y=580)
+button_close.place(x=700, y=600)
+
+
+# In[12]:
 
 cv2.destroyAllWindows()
 
+
+# In[13]:
+
 root.mainloop()
 
-### !!! Make sure to downgrade setuptools to 19.2. If this does get the frozen binary with PyInstaller !!!!
+
+# ### !!! Make sure to downgrade setuptools to 19.2. If this does get the frozen binary with PyInstaller !!!!
 # Just hit this myself. Can confirm that downgrading to setuptools 19.2 fixes the issue for me.
 
-### To install the SimpleITK package with conda run:
-'''
-```powershell
-conda install --channel https://conda.anaconda.org/SimpleITK SimpleITK
-```
-'''
+# ### To install the SimpleITK package with conda run:
+# 
+# ```powershell
+# conda install --channel https://conda.anaconda.org/SimpleITK SimpleITK
+# ```
