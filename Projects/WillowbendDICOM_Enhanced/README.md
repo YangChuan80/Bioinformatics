@@ -38,8 +38,10 @@ This option is only adopted by Python specialist. There are several dependencies
  - Download pydicom source from [https://github.com/darcymason/pydicom](https://github.com/darcymason/pydicom)
 
 - **OpenCV**
- - Download the wheel file from [https://scivision.co/install-opencv-3-0-x-for-python-on-windows/](https://scivision.co/install-opencv-3-0-x-for-python-on-windows/)
-
+ - The opencv should be the version of 3.4:
+```
+pip install opencv-python==3.4.2.16
+```
 After you complete the WillowbendDICOM.py file download, run it:
 ```
 python WillowbendDICOM.py
