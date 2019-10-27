@@ -294,7 +294,7 @@ filename = ''
 
 # //////// Frame /////////////////////////////
 
-label_Patients=tk.Label(root,width=125, height=36 , relief='raised', borderwidth=2)
+label_Patients=tk.Label(root,width=125, height=43, font=('tahoma', 9), relief='raised', borderwidth=2)
 label_Patients.place(x=20,y=15)
 
 #///////////Image Title///////////////////////////////
