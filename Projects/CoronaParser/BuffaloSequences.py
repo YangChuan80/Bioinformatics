@@ -12,6 +12,8 @@ from tkinter import messagebox
 from tkinter import filedialog
 
 
+# # Member Functions
+
 # In[2]:
 
 
@@ -163,13 +165,14 @@ def translate(dna):
     return aminoacid, amino, a
 
 
+# # Control Functions
+
 # In[6]:
 
 
 def browseFileButton():
-    global filename
    
-    filename = filedialog.askopenfilename(filetypes=(('DICOM files', '*.fa'), ('All files', '*.*')))
+    filename = filedialog.askopenfilename(filetypes=(('FASTA files', '*.fa'), ('All files', '*.*')))
     name, dna = loadCoronaVirusDNA(filename)
     
     text_header.delete('1.0', tk.END)
@@ -375,6 +378,8 @@ def about():
 
     about_root.mainloop()
 
+
+# # Main
 
 # In[12]:
 
