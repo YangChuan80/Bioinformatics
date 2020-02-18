@@ -189,7 +189,7 @@ def browseFileButton():
 
 
 def buttonTrim():
-    dna_raw = text_raw.get('1.0', tk.END).rstrip()
+    dna_raw = text_raw.get('1.0', tk.END).rstrip().upper()
     
     dna_temp_list1 = dna_raw.split(' ')
     dna_withoutBlank = ''.join(dna_temp_list1)
